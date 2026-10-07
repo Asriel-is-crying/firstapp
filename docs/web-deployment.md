@@ -11,7 +11,7 @@ Expo’s single-page export is the sole web build. EAS Hosting supports `single`
 7. Complete hosted acceptance in security-checklist.md, then run `pnpm deploy:production`. The production command rejects absent public configuration and HTTP-only site URLs.
 8. Test a new event deep link in a clean mobile browser; authenticate and register. Test another account independently organizing a club/event/team.
 
-The app is not deployed merely because export passes. Auth, Storage, email delivery, RLS and actual production hosting must be verified. The current machine initially had neither an Expo login nor Supabase public configuration.
+The app is not deployed merely because export passes. Auth, Storage, email delivery, RLS and actual production hosting must be verified. See [hosted backend setup](hosted-setup.md) for the current backend configuration and outstanding acceptance work.
 
 On another static host, serve `dist/` and rewrite unknown non-asset paths to `index.html`. Retain HTTPS and appropriate cache/security headers. The local `pnpm preview` command provides this behavior for verification. No EC2 or always-on custom Node server is needed.
 
