@@ -241,4 +241,78 @@ describe("PostgreSQL authorization and transactions", () => {
       ),
     ).rejects.toThrow("unavailable");
   });
+  it("an organizer can draft, publish and cancel an event through the same RPC used by the UI", async () => {
+    const data = {
+      title: "Campus Design Workshop",
+      slug: "campus-design-workshop",
+      description: "A hands-on workshop for new student designers.",
+      category: "Technology",
+      venue: "Studio",
+      starts_at: new Date(Date.now() + 3 * 86400000).toISOString(),
+      ends_at: new Date(Date.now() + 3 * 86400000 + 7200000).toISOString(),
+      registration_opens_at: new Date(Date.now() - 86400000).toISOString(),
+      registration_closes_at: new Date(Date.now() + 2 * 86400000).toISOString(),
+      capacity: 12,
+      price: 0,
+      contact_email: "person1@example.edu",
+      waitlist_enabled: true,
+      cover_url: null,
+      status: "draft",
+    };
+    const created = await as(
+      1,
+      `select save_event(null,(select id from clubs limit 1),'${JSON.stringify(data)}') as id`,
+    );
+    const eventId = (created.rows[0] as { id: string }).id;
+    expect(
+      (await as(null, `select * from events where id='${eventId}'`)).rows,
+    ).toHaveLength(0);
+    await as(
+      1,
+      `select save_event('${eventId}',(select id from clubs limit 1),'${JSON.stringify({ ...data, status: "published" })}')`,
+    );
+    expect(
+      (await as(null, `select * from events where id='${eventId}'`)).rows,
+    ).toHaveLength(1);
+    await as(3, `select register_event('${eventId}')`);
+    expect(
+      (
+        await as(
+          1,
+          `select * from event_registrations where event_id='${eventId}'`,
+        )
+      ).rows,
+    ).toHaveLength(1);
+    await as(
+      1,
+      `select save_event('${eventId}',(select id from clubs limit 1),'${JSON.stringify({ ...data, status: "cancelled" })}')`,
+    );
+    await expect(as(2, `select register_event('${eventId}')`)).rejects.toThrow(
+      "not open",
+    );
+  });
+  it("a student can create a club without gaining access to other clubs", async () => {
+    const created = await as(
+      3,
+      `select create_club('Photography Circle','photography-circle','${id(10)}','Learn photography together','person3@example.edu') as id`,
+    );
+    const clubId = (created.rows[0] as { id: string }).id;
+    expect(
+      (await as(3, `select is_club_admin('${clubId}') as yes`)).rows[0],
+    ).toEqual({ yes: true });
+    expect(
+      (
+        await as(
+          3,
+          `select is_club_admin((select id from clubs where slug='club-one')) as yes`,
+        )
+      ).rows[0],
+    ).toEqual({ yes: false });
+    await expect(
+      as(
+        3,
+        `select add_member((select id from clubs where slug='club-one'),'person3@example.edu','admin')`,
+      ),
+    ).rejects.toThrow("Not authorized");
+  });
 });
