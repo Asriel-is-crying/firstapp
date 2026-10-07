@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "CampusFlow",
+    "slug": "campusflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/icon-512.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./public/icon-192.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "scheme": "campusflow",
+    "plugins": ["expo-router", "expo-image-picker"]
+  }
+}
